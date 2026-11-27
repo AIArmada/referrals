@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace AIArmada\Referrals\Fulfillment;
+namespace AIArmada\Referrals\Drivers;
 
 use AIArmada\Referrals\Contracts\ReferralRewardFulfillment;
 use AIArmada\Referrals\Data\ReferralFulfillmentResult;
+use AIArmada\Referrals\Data\ReferralRewardContext;
 use AIArmada\Referrals\Exceptions\ReferralFulfillmentException;
-use AIArmada\Referrals\Models\ReferralReward;
 use Illuminate\Contracts\Container\Container;
 
 final class ReferralRewardFulfillmentRouter implements ReferralRewardFulfillment
@@ -20,21 +20,19 @@ final class ReferralRewardFulfillmentRouter implements ReferralRewardFulfillment
         private readonly array $drivers,
     ) {}
 
-    public function fulfill(ReferralReward $reward): ReferralFulfillmentResult
+    public function fulfill(ReferralRewardContext $reward): ReferralFulfillmentResult
     {
         return $this->adapter($reward)->fulfill($reward);
     }
 
-    public function reverse(ReferralReward $reward, string $reason): ReferralFulfillmentResult
+    public function reverse(ReferralRewardContext $reward, string $reason): ReferralFulfillmentResult
     {
         return $this->adapter($reward)->reverse($reward, $reason);
     }
 
-    private function adapter(ReferralReward $reward): ReferralRewardFulfillment
+    private function adapter(ReferralRewardContext $reward): ReferralRewardFulfillment
     {
-        $driver = $reward->driver !== ''
-            ? $reward->driver
-            : (string) config('referrals.fulfillment.default_driver', 'manual');
+        $driver = $reward->driver;
         $driverConfig = config('referrals.fulfillment.drivers.' . $driver);
         $adapterClass = $this->drivers[$driver] ?? null;
 
